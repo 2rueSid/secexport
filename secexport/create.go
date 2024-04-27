@@ -1,6 +1,8 @@
 package secexport
 
 import (
+	"encoding/base64"
+	"encoding/json"
 	"errors"
 	"log"
 )
@@ -49,7 +51,29 @@ func (c *createCommand) Execute() (string, error) {
 		return "", err
 	}
 
-	log.Printf("DATA: %v", data)
+	result := ""
+	if c.Encrypt && c.Password != "" {
+		jsonData, err := json.Marshal(data.Data)
+		if err != nil {
+			return "", err
+		}
+		inp := []byte(jsonData)
+
+		encrypted, err := Encrypt(inp, c.Password)
+		result = base64.StdEncoding.EncodeToString(encrypted)
+		if err != nil {
+			return "", nil
+		}
+	} else {
+		jsonData, err := json.Marshal(data.Data)
+		if err != nil {
+			return "", err
+		}
+
+		result = string(jsonData)
+	}
+
+	log.Printf(result)
 
 	return "", nil
 }
