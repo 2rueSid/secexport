@@ -1,10 +1,10 @@
 package secexport
 
 import (
-	"encoding/base64"
 	"encoding/json"
 	"errors"
 	"log"
+	"os"
 )
 
 // Create Command:
@@ -25,12 +25,11 @@ import (
 //
 //	-s           Use secrets from the Secrets Manager. Default: true.
 //	-pm 0        Use secrets from the Parameter Store. Default: true.
-//	-e           Encrypt secrets. Default: true.
 //	-p <password> Password for encrypting and retrieving secrets, or deleting them. Required if encryption is enabled.
 //
 // Examples:
 //
-//	command -s -e -p YourPassword tree flower grass
+//	command -s -p YourPassword tree flower grass
 //
 // Notes:
 //
@@ -39,7 +38,6 @@ type createCommand struct {
 	Filters        []*string
 	SecretManager  bool
 	ParameterStore bool
-	Encrypt        bool
 	Password       string
 	context        *commandContext
 }
@@ -51,29 +49,28 @@ func (c *createCommand) Execute() (string, error) {
 		return "", err
 	}
 
-	result := ""
-	if c.Encrypt && c.Password != "" {
-		jsonData, err := json.Marshal(data.Data)
-		if err != nil {
-			return "", err
-		}
-		inp := []byte(jsonData)
+	jsonData, err := json.Marshal(data.Data)
+	if err != nil {
+		return "", err
+	}
+	inp := []byte(jsonData)
 
-		encrypted, err := Encrypt(inp, c.Password)
-		result = base64.StdEncoding.EncodeToString(encrypted)
-		if err != nil {
-			return "", nil
-		}
-	} else {
-		jsonData, err := json.Marshal(data.Data)
-		if err != nil {
-			return "", err
-		}
-
-		result = string(jsonData)
+	encrypted, err := Encrypt(inp, c.Password)
+	if err != nil {
+		return "", nil
 	}
 
-	log.Printf(result)
+	// encoded := base64.StdEncoding.EncodeToString(encrypted)
+
+	path, err := os.Getwd()
+	if err != nil {
+		return "", err
+	}
+
+	err = WriteFile(GetSHA1(&path), encrypted)
+	if err != nil {
+		return "", err
+	}
 
 	return "", nil
 }
@@ -89,8 +86,6 @@ func (c *createCommand) Parse(args []string) error {
 					c.SecretManager = false
 				case "-pm":
 					c.ParameterStore = false
-				case "-e":
-					c.Encrypt = false
 				}
 				i++
 			} else if args[i] == "-p" && i+1 < len(args) {
@@ -101,9 +96,8 @@ func (c *createCommand) Parse(args []string) error {
 			c.Filters = append(c.Filters, &args[i])
 		}
 	}
-	if c.Password == "" && c.Encrypt {
+	if c.Password == "" {
 		msg := "can't have password as Nil when Encryption is enabled"
-		log.Printf(msg)
 		return errors.New(msg)
 	}
 
@@ -126,11 +120,10 @@ Parameters:
 Options:
     -s           Use secrets from the Secrets Manager. Default: true.
     -pm 0        Use secrets from the Parameter Store. Default: true.
-    -e           Encrypt secrets. Default: true.
-    -p <password> Password for encrypting and retrieving secrets, or deleting them. Required if encryption is enabled.
+    -p <password> Password for encrypting and retrieving secrets, or deleting them. Required.
 
 Examples:
-    command -s -e -p YourPassword tree flower grass
+    command -s -p YourPassword tree flower grass
 
 Notes:
     This command interacts with AWS Secrets Manager and Parameter Store based on the provided options.
@@ -142,10 +135,9 @@ func CreateCommand() *createCommand {
 		Filters:        make([]*string, 0),
 		SecretManager:  true,
 		ParameterStore: true,
-		Encrypt:        true,
 		Password:       "",
 		context: &commandContext{
-			flags:   map[string]bool{"-p": true, "-s": true, "-pm": true, "-e": true},
+			flags:   map[string]bool{"-p": true, "-s": true, "-pm": true},
 			command: CreateType,
 		},
 	}
