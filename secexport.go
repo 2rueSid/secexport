@@ -16,11 +16,11 @@ func main() {
 	case string(secexport.CreateType):
 		command = secexport.CreateCommand()
 	case string(secexport.DeleteType):
-		fmt.Println("Not Implemented")
+		log.Panic("Not Implemented")
 	case string(secexport.RefreshType):
-		fmt.Println("Not Implemented")
+		log.Panic("Not Implemented")
 	case string(secexport.RetrieveType):
-		fmt.Println("Not Implemented")
+		command = secexport.RetrieveCommand()
 	default:
 		fmt.Println("Not Implemented")
 	}

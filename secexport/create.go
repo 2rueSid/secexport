@@ -66,7 +66,6 @@ func (c *createCommand) Execute() (*string, error) {
 		return nil, nil
 	}
 
-	// encoded := base64.StdEncoding.EncodeToString(encrypted)
 
 	// Write to a file
 	err = WriteFile(file, encrypted)

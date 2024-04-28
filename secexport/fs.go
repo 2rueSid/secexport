@@ -30,14 +30,23 @@ func cacheDir() (*string, error) {
 	return &cacheDir, nil
 }
 
-func CreateFile() (*os.File, error) {
+func getFilePath() (string, error) {
 	cacheDir, err := cacheDir()
 	if err != nil {
-		return nil, err
+		return "", err
 	}
 	pwd, err := os.Getwd()
 
 	filePath := path.Join(*cacheDir, GetSHA1(&pwd))
+
+	return filePath, nil
+}
+
+func CreateFile() (*os.File, error) {
+	filePath, err := getFilePath()
+	if err != nil {
+		return nil, err
+	}
 
 	isExists := isExists(filePath)
 	if isExists {
@@ -65,4 +74,22 @@ func WriteFile(f *os.File, d []byte) error {
 	}
 
 	return nil
+}
+
+func ReadFile() ([]byte, error) {
+	filePath, err := getFilePath()
+	if err != nil {
+		return nil, err
+	}
+
+	if !isExists(filePath) {
+		return nil, errors.New("record not exists for current pwd.")
+	}
+
+	f, err := os.ReadFile(filePath)
+	if err != nil {
+		return nil, err
+	}
+
+	return f, nil
 }
