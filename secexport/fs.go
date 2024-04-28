@@ -2,10 +2,17 @@ package secexport
 
 import (
 	"errors"
-	"log"
 	"os"
 	"path"
 )
+
+func isExists(p string) bool {
+	if _, err := os.Stat(p); os.IsNotExist(err) {
+		return false
+	}
+
+	return true
+}
 
 func cacheDir() (*string, error) {
 	p, e := os.UserCacheDir()
@@ -14,10 +21,8 @@ func cacheDir() (*string, error) {
 	}
 
 	cacheDir := path.Join(p, "secexport")
-	if _, err := os.Stat(cacheDir); errors.Is(err, os.ErrNotExist) {
-		log.Printf("Im here")
+	if !isExists(cacheDir) {
 		err := os.MkdirAll(cacheDir, os.ModePerm)
-		log.Printf("The err is: %v", err)
 		if err != nil {
 			return nil, err
 		}
@@ -25,34 +30,36 @@ func cacheDir() (*string, error) {
 	return &cacheDir, nil
 }
 
-func createFile(filePath string) (os.File, error) {
-	f, err := os.Create(filePath)
+func CreateFile() (*os.File, error) {
+	cacheDir, err := cacheDir()
 	if err != nil {
-		return os.File{}, err
+		return nil, err
+	}
+	pwd, err := os.Getwd()
+
+	filePath := path.Join(*cacheDir, GetSHA1(&pwd))
+
+	isExists := isExists(filePath)
+	if isExists {
+		return nil, errors.New("data for that directory aready exists")
 	}
 
-	return *f, nil
+	f, err := os.Create(filePath)
+	if err != nil {
+		return nil, err
+	}
+
+	return f, nil
 }
 
 // Writes file to the given destination.
-func WriteFile(hash string, d []byte) error {
-	dirPath, err := cacheDir()
+func WriteFile(f *os.File, d []byte) error {
+	_, err := f.Write(d)
 	if err != nil {
 		return err
 	}
 
-	filePath := path.Join(*dirPath, hash)
-	file, err := createFile(filePath)
-	if err != nil {
-		return err
-	}
-
-	_, err = file.Write(d)
-	if err != nil {
-		return err
-	}
-
-	err = file.Sync()
+	err = f.Sync()
 	if err != nil {
 		return err
 	}

@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"errors"
 	"log"
-	"os"
 )
 
 // Create Command:
@@ -42,37 +41,40 @@ type createCommand struct {
 	context        *commandContext
 }
 
-func (c *createCommand) Execute() (string, error) {
+func (c *createCommand) Execute() (*string, error) {
+	file, err := CreateFile()
+	if err != nil {
+		return nil, err
+	}
+
+	// Retrieve AWS Data
 	data, err := RetreiveSecrets(c.Filters, c.ParameterStore, c.SecretManager)
 	if err != nil {
 		log.Printf("Got error when retrieving secrets from the AWS. %v", err)
-		return "", err
+		return nil, err
 	}
 
 	jsonData, err := json.Marshal(data.Data)
 	if err != nil {
-		return "", err
+		return nil, err
 	}
+	// Encrypt
 	inp := []byte(jsonData)
 
 	encrypted, err := Encrypt(inp, c.Password)
 	if err != nil {
-		return "", nil
+		return nil, nil
 	}
 
 	// encoded := base64.StdEncoding.EncodeToString(encrypted)
 
-	path, err := os.Getwd()
+	// Write to a file
+	err = WriteFile(file, encrypted)
 	if err != nil {
-		return "", err
+		return nil, err
 	}
 
-	err = WriteFile(GetSHA1(&path), encrypted)
-	if err != nil {
-		return "", err
-	}
-
-	return "", nil
+	return data.Values(), nil
 }
 
 func (c *createCommand) Parse(args []string) error {

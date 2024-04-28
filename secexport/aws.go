@@ -1,9 +1,11 @@
 package secexport
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
 	"log"
+	"strings"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/session"
@@ -24,6 +26,24 @@ type secretNormalized struct {
 
 type AWSSecrets struct {
 	Data map[string]secretNormalized
+}
+
+func (s *AWSSecrets) Values() *string {
+	var res string
+
+	for k, v := range s.Data {
+		var buf bytes.Buffer
+		buf.WriteString("export ")
+		buf.WriteString(strings.ToUpper(strings.ReplaceAll(strings.ReplaceAll(k, "-", "_"), "/", "_")))
+		buf.WriteString("='")
+		buf.WriteString(strings.ReplaceAll(v.Value, "\"", ""))
+		buf.WriteString("'\n")
+
+		res += buf.String()
+		buf.Reset()
+	}
+
+	return &res
 }
 
 func RetreiveSecrets(args []*string, pm bool, sc bool) (*AWSSecrets, error) {

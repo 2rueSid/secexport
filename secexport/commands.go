@@ -20,7 +20,7 @@ const (
 )
 
 type Command interface {
-	Execute() (string, error)
+	Execute() (*string, error)
 	Parse(args []string) error
 	Help() string
 }
