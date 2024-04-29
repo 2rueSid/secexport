@@ -37,8 +37,14 @@ func (c *retrieveCommand) Execute() (*string, error) {
 		return nil, err
 	}
 
-	asString := string(decrypted)
-	return &asString, nil
+	secrets := AWSSecrets{}
+
+	res, err := secrets.Parse(decrypted)
+	if err != nil {
+		return nil, err
+	}
+
+	return res, nil
 }
 
 func (c *retrieveCommand) Parse(args []string) error {

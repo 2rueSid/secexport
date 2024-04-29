@@ -46,6 +46,18 @@ func (s *AWSSecrets) Values() *string {
 	return &res
 }
 
+func (s *AWSSecrets) Parse(d []byte) (*string, error) {
+	var normalized map[string]secretNormalized
+
+	err := json.Unmarshal(d, &normalized)
+	if err != nil {
+		return nil, err
+	}
+
+	s.Data = normalized
+	return s.Values(), nil
+}
+
 func RetreiveSecrets(args []*string, pm bool, sc bool) (*AWSSecrets, error) {
 	var err error
 
