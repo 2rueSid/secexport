@@ -31,13 +31,13 @@ func main() {
 	}
 	err := command.Parse(os.Args[2:])
 	if err != nil {
-		log.Fatalln(err.Error())
+		log.Println(err.Error())
 		os.Exit(-1)
 	}
 
 	res, err := command.Execute()
 	if err != nil {
-		log.Fatalln(err.Error())
+		log.Println(err.Error())
 		os.Exit(-1)
 	}
 
