@@ -16,7 +16,7 @@ func main() {
 	case string(secexport.CreateType):
 		command = secexport.CreateCommand()
 	case string(secexport.DeleteType):
-		log.Panic("Not Implemented")
+		command = secexport.DeleteCommand()
 	case string(secexport.RefreshType):
 		log.Panic("Not Implemented")
 	case string(secexport.RetrieveType):

@@ -93,3 +93,17 @@ func ReadFile() ([]byte, error) {
 
 	return f, nil
 }
+
+func DeleteFile() error {
+	filePath, err := getFilePath()
+	if err != nil {
+		return err
+	}
+
+	err = os.Remove(filePath)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
