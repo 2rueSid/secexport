@@ -22,7 +22,7 @@ func main() {
 	case string(secexport.RetrieveType):
 		command = secexport.RetrieveCommand()
 	default:
-		fmt.Println("Not Implemented")
+		log.Fatalln("Not Implemented")
 	}
 
 	if len(os.Args) < 3 || os.Args[2] == "help" || os.Args[2] == "-h" {
@@ -31,14 +31,12 @@ func main() {
 	}
 	err := command.Parse(os.Args[2:])
 	if err != nil {
-		log.Println(err.Error())
-		os.Exit(-1)
+		log.Fatalln(err.Error())
 	}
 
 	res, err := command.Execute()
 	if err != nil {
-		log.Println(err.Error())
-		os.Exit(-1)
+		log.Fatalln(err.Error())
 	}
 
 	fmt.Println(*res)

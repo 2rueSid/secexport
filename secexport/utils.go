@@ -9,7 +9,14 @@ import (
 
 func IsJSON(s *string) bool {
 	var js json.RawMessage
+
 	return json.Unmarshal([]byte(*s), &js) == nil
+}
+
+func IsByteJSON(s []byte) bool {
+	var js json.RawMessage
+
+	return json.Unmarshal(s, &js) == nil
 }
 
 func IsJSONArray(s *string) bool {

@@ -3,7 +3,7 @@ package secexport
 import (
 	"encoding/json"
 	"errors"
-	"log"
+	"os"
 )
 
 // Create Command:
@@ -50,7 +50,7 @@ func (c *createCommand) Execute() (*string, error) {
 	// Retrieve AWS Data
 	data, err := RetreiveSecrets(c.Filters, c.ParameterStore, c.SecretManager)
 	if err != nil {
-		log.Printf("Got error when retrieving secrets from the AWS. %v", err)
+		os.Remove(file.Name())
 		return nil, err
 	}
 
@@ -65,7 +65,6 @@ func (c *createCommand) Execute() (*string, error) {
 	if err != nil {
 		return nil, nil
 	}
-
 
 	// Write to a file
 	err = WriteFile(file, encrypted)

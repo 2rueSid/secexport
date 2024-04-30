@@ -13,12 +13,16 @@ type retrieveCommand struct {
 func (c *retrieveCommand) Execute() (*string, error) {
 	data, err := ReadFile()
 	if err != nil {
-		return nil, nil
+		return nil, err
 	}
 
 	decrypted, err := Decrypt(data, c.Password)
 	if err != nil {
 		return nil, err
+	}
+
+	if !IsByteJSON(decrypted) {
+		return nil, errors.New("password invalid")
 	}
 
 	secrets := AWSSecrets{}

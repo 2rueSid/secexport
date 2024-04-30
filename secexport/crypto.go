@@ -48,6 +48,7 @@ func Decrypt(ciphertext []byte, password string) ([]byte, error) {
 
 	block, err := aes.NewCipher(key)
 	if err != nil {
+		fmt.Print("Im here")
 		return nil, err
 	}
 
